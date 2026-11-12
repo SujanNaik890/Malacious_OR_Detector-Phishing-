@@ -709,7 +709,9 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
 <script>
 
-  const BACKEND = "http://127.0.0.1:5000";
+  const BACKEND = window.location.origin.includes("5000") || window.location.origin.includes("127.0.0.1") || window.location.origin.includes("localhost")
+    ? ""
+    : (window.location.protocol.startsWith("http") ? "" : "http://127.0.0.1:5000");
 
   const scanFrame   = document.getElementById("scanFrame");
   const scanLine    = document.getElementById("scanLine");
