@@ -280,24 +280,52 @@
 
   .cam-controls{
     position:absolute;
-    bottom:10px;
+    bottom:12px;
     left:50%;
     transform:translateX(-50%);
     display:flex;
-    gap:8px;
+    gap:10px;
     z-index:10;
+  }
+
+  .btn-cam-ctrl{
+    background:rgba(18,24,33,0.85);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:7px 14px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    font-weight:500;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    backdrop-filter:blur(6px);
+    transition:all 150ms ease;
+  }
+
+  .btn-cam-ctrl:hover{
+    border-color:var(--scan);
+    color:var(--scan);
+    background:rgba(18,24,33,0.95);
   }
 
   .btn-cam-stop{
     background:rgba(255,92,92,0.85);
     color:#fff;
     border:none;
-    border-radius:4px;
-    padding:6px 12px;
+    border-radius:6px;
+    padding:7px 14px;
     font-family:var(--font-mono);
-    font-size:11px;
+    font-size:12px;
     font-weight:600;
     cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    backdrop-filter:blur(6px);
+    transition:all 150ms ease;
   }
 
   .btn-cam-stop:hover{
@@ -551,7 +579,12 @@
         <div class="video-container" id="videoContainer" hidden>
           <video id="cameraVideo" playsinline autoplay muted></video>
           <div class="cam-controls">
-            <button class="btn-cam-stop" id="btnStopCam" type="button">✕ Cancel Scan</button>
+            <button class="btn-cam-ctrl" id="btnSwapCam" type="button" title="Switch between front and rear cameras">
+              🔄 Switch Camera
+            </button>
+            <button class="btn-cam-stop" id="btnStopCam" type="button">
+              ✕ Cancel
+            </button>
           </div>
         </div>
 
@@ -618,9 +651,11 @@
   const videoContainer = document.getElementById("videoContainer");
   const cameraVideo    = document.getElementById("cameraVideo");
   const btnStopCam     = document.getElementById("btnStopCam");
+  const btnSwapCam     = document.getElementById("btnSwapCam");
 
   let activeStream = null;
   let scanAnimationId = null;
+  let currentFacingMode = "environment"; // "environment" (rear) or "user" (front)
 
   const urlInput      = document.getElementById("urlInput");
   const analyzeUrlBtn = document.getElementById("analyzeUrlBtn");
@@ -842,19 +877,19 @@
 
   // ---------- Live Camera Scanner ----------
 
-  async function startCamera(){
-    stopCamera();
+  async function startCamera(facing = currentFacingMode){
+    currentFacingMode = facing;
+    stopCamera(false);
 
     try{
-      // Prefer rear camera on mobile devices ("environment"), falls back to available camera on PC/laptop
       let stream = null;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          video: { facingMode: { ideal: currentFacingMode }, width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false
         });
       } catch (err) {
-        // Fallback for laptops or devices that don't support environment facingMode
+        // Fallback for devices that don't support specific facingMode
         stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: false
@@ -878,7 +913,7 @@
     }
   }
 
-  function stopCamera(){
+  function stopCamera(resetUI = true){
     if(scanAnimationId){
       cancelAnimationFrame(scanAnimationId);
       scanAnimationId = null;
@@ -888,9 +923,17 @@
       activeStream = null;
     }
     cameraVideo.srcObject = null;
-    videoContainer.hidden = true;
-    scanEmpty.hidden = false;
-    btnScanCam.classList.remove("active");
+    if(resetUI){
+      videoContainer.hidden = true;
+      scanEmpty.hidden = false;
+      btnScanCam.classList.remove("active");
+    }
+  }
+
+  async function swapCamera(){
+    // Toggle between "environment" (rear) and "user" (front)
+    const newFacing = currentFacingMode === "environment" ? "user" : "environment";
+    await startCamera(newFacing);
   }
 
   function scanVideoTick(){
@@ -919,6 +962,7 @@
   }
 
   btnScanCam.addEventListener("click", () => startCamera());
+  btnSwapCam.addEventListener("click", () => swapCamera());
   btnStopCam.addEventListener("click", () => {
     stopCamera();
     scanFrame.className = "scan-frame";
