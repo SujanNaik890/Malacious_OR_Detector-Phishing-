@@ -285,11 +285,39 @@
     transform:translateX(-50%);
     display:flex;
     gap:10px;
-    z-index:10;
+    z-index:20;
+  }
+
+  .btn-cam-swap-top{
+    position:absolute;
+    top:12px;
+    right:12px;
+    z-index:25;
+    background:rgba(18,24,33,0.85);
+    color:#e7ecf2;
+    border:1px solid #4cc9f0;
+    border-radius:20px;
+    padding:6px 14px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 2px 8px rgba(0,0,0,0.5);
+    transition:all 150ms ease;
+  }
+
+  .btn-cam-swap-top:hover{
+    background:#4cc9f0;
+    color:#04141c;
+    box-shadow:0 0 12px rgba(76,201,240,0.6);
   }
 
   .btn-cam-ctrl{
-    background:rgba(18,24,33,0.85);
+    background:rgba(18,24,33,0.9);
     color:var(--text);
     border:1px solid var(--line);
     border-radius:6px;
@@ -578,12 +606,15 @@
 
         <div class="video-container" id="videoContainer" hidden>
           <video id="cameraVideo" playsinline autoplay muted></video>
+          <button class="btn-cam-swap-top" id="btnSwapCam" type="button" title="Switch between front and rear cameras">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>Flip / Swap Cam</span>
+          </button>
           <div class="cam-controls">
-            <button class="btn-cam-ctrl" id="btnSwapCam" type="button" title="Switch between front and rear cameras">
-              🔄 Switch Camera
-            </button>
             <button class="btn-cam-stop" id="btnStopCam" type="button">
-              ✕ Cancel
+              ✕ Cancel Scan
             </button>
           </div>
         </div>
