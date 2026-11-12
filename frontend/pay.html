@@ -1,0 +1,1186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SafePay — Next-Gen AI Secure Payments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #0a0f1d;
+    --card-bg: #141b2d;
+    --card-surface: #1a233a;
+    --primary: #4f46e5;
+    --primary-light: #6366f1;
+    --cyan: #06b6d4;
+    --safe: #10b981;
+    --safe-glow: rgba(16, 185, 129, 0.25);
+    --risk: #ef4444;
+    --risk-glow: rgba(239, 68, 68, 0.25);
+    --warning: #f59e0b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.18) 0%, transparent 60%),
+      radial-gradient(circle at 10% 90%, rgba(6, 182, 212, 0.12) 0%, transparent 45%);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-frame {
+    width: 100%;
+    max-width: 440px;
+    min-height: 100vh;
+    background: #0f1629;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Header */
+  .top-nav {
+    padding: 20px 20px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(15, 22, 41, 0.85);
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  }
+
+  .user-info h3 {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .user-info p {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .shield-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--safe);
+    font-weight: 600;
+  }
+
+  .shield-pill svg { width: 14px; height: 14px; }
+
+  /* Scrollable Content */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 90px;
+  }
+
+  /* Balance Card */
+  .balance-card {
+    background: linear-gradient(135deg, #1e1b4b 0%, #1e293b 100%);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 20px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  }
+
+  .balance-card::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -20%;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, transparent 70%);
+  }
+
+  .balance-card .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .balance-card .amount {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 8px 0 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .balance-card .amount span {
+    font-size: 20px;
+    color: var(--cyan);
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #cbd5e1;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 12px;
+  }
+
+  /* Quick Actions */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .action-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-main);
+    text-decoration: none;
+  }
+
+  .action-btn:hover, .action-btn:active {
+    transform: translateY(-2px);
+    border-color: var(--primary-light);
+    background: var(--card-surface);
+  }
+
+  .action-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--cyan);
+  }
+
+  .action-btn.scan-primary {
+    background: linear-gradient(135deg, #4338ca 0%, #3b82f6 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+  }
+
+  .action-btn.scan-primary .action-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+  }
+
+  .action-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* AI Security Banner */
+  .security-banner {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sec-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.18);
+    color: var(--safe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sec-text h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--safe);
+  }
+
+  .sec-text p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Recent Transactions */
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .tx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tx-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 0.2s ease;
+  }
+
+  .tx-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .tx-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .tx-info h5 {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .tx-info p {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .tx-amount {
+    text-align: right;
+  }
+
+  .tx-amount .val {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+
+  .tx-amount .status {
+    font-size: 10px;
+    color: var(--safe);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
+  }
+
+  /* Bottom Bar */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 440px;
+    background: rgba(15, 22, 41, 0.95);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0 16px;
+    z-index: 30;
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .nav-item.active {
+    color: var(--cyan);
+  }
+
+  .scan-fab {
+    position: relative;
+    top: -20px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #06b6d4 0%, #4f46e5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(6, 182, 212, 0.45);
+    border: 3px solid #0f1629;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .scan-fab:active {
+    transform: scale(0.92);
+  }
+
+  /* ================== QR SCANNER OVERLAY MODAL ================== */
+  .scanner-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 7, 14, 0.96);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+
+  .scanner-overlay.active {
+    display: flex;
+  }
+
+  .scanner-header {
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(15, 22, 41, 0.8);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .scanner-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .scanner-header h3 span {
+    font-size: 10px;
+    background: rgba(79, 70, 229, 0.3);
+    color: #818cf8;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .close-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: #cbd5e1;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .scanner-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+  }
+
+  .viewfinder {
+    position: relative;
+    width: 270px;
+    height: 270px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  #videoFeed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Scan corners */
+  .corner {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 3.5px solid var(--cyan);
+    pointer-events: none;
+  }
+  .c-tl { top: 12px; left: 12px; border-right: none; border-bottom: none; border-top-left-radius: 10px; }
+  .c-tr { top: 12px; right: 12px; border-left: none; border-bottom: none; border-top-right-radius: 10px; }
+  .c-bl { bottom: 12px; left: 12px; border-right: none; border-top: none; border-bottom-left-radius: 10px; }
+  .c-br { bottom: 12px; right: 12px; border-left: none; border-top: none; border-bottom-right-radius: 10px; }
+
+  .laser-line {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #06b6d4, #4f46e5, transparent);
+    box-shadow: 0 0 12px #06b6d4;
+    animation: scanAnim 1.8s infinite ease-in-out;
+  }
+
+  @keyframes scanAnim {
+    0% { top: 15px; opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { top: calc(100% - 15px); opacity: 0; }
+  }
+
+  .scanner-footer-controls {
+    margin-top: 24px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .ctrl-pill {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+  }
+
+  .ctrl-pill:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Manual QR upload trigger in scanner */
+  .upload-qr-link {
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* Hidden canvas */
+  #canvasBuffer { display: none; }
+
+  /* ================== VERDICT / PAYMENT RESULT BOTTOM SHEET ================== */
+  .result-modal {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 100%);
+    width: 100%;
+    max-width: 440px;
+    background: #141b2d;
+    border-top: 1px solid var(--border);
+    border-radius: 28px 28px 0 0;
+    padding: 24px;
+    z-index: 150;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.8);
+  }
+
+  .result-modal.open {
+    transform: translate(-50%, 0);
+  }
+
+  .drag-handle {
+    width: 44px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 0 auto 18px;
+  }
+
+  .verdict-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .status-badge-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .status-badge-icon.safe {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: var(--safe);
+    box-shadow: 0 0 20px var(--safe-glow);
+  }
+
+  .status-badge-icon.suspicious {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: var(--risk);
+    box-shadow: 0 0 20px var(--risk-glow);
+  }
+
+  .status-title h3 {
+    font-size: 19px;
+    font-weight: 800;
+  }
+
+  .status-title p {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .risk-meter {
+    background: var(--card-surface);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .risk-meter .score {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .qr-url-box {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: #cbd5e1;
+    word-break: break-all;
+    max-height: 70px;
+    overflow-y: auto;
+    margin-bottom: 18px;
+  }
+
+  .reasons-list {
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .reasons-list li {
+    margin-left: 18px;
+    margin-top: 4px;
+  }
+
+  /* Modal Action buttons */
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-pay {
+    flex: 1;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+  }
+
+  .btn-pay:hover { filter: brightness(1.1); }
+
+  .btn-pay.blocked {
+    background: #334155;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* Payment success celebration toast */
+  .toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: #10b981;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+    z-index: 200;
+    transition: transform 0.4s ease;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="app-frame">
+
+  <!-- Top bar -->
+  <header class="top-nav">
+    <div class="user-badge">
+      <div class="avatar">SN</div>
+      <div class="user-info">
+        <h3>Sujan Naik</h3>
+        <p>sujan@safepay</p>
+      </div>
+    </div>
+    <div class="shield-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span>AI Shield Active</span>
+    </div>
+  </header>
+
+  <!-- Main Scrollable Body -->
+  <main class="main-content">
+
+    <!-- Balance Card -->
+    <section class="balance-card">
+      <p class="label">Primary Wallet Balance</p>
+      <div class="amount"><span>₹</span>14,850.50</div>
+      <div class="card-footer">
+        <span>Linked: HDFC Bank •••• 4092</span>
+        <span style="color: var(--safe); font-weight: 600;">UPI ID Verified</span>
+      </div>
+    </section>
+
+    <!-- Quick Pay / Scan Actions -->
+    <section class="quick-actions">
+      <!-- MAIN SCAN & PAY BUTTON -->
+      <div class="action-btn scan-primary" id="openScannerBtn">
+        <div class="action-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7z"/>
+          </svg>
+        </div>
+        <span class="action-label">Scan & Pay</span>
+      </div>
+
+      <div class="action-btn">
+        <div class="action-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+        </div>
+        <span class="action-label">To Contact</span>
+      </div>
+
+      <div class="action-btn">
+        <div class="action-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+          </svg>
+        </div>
+        <span class="action-label">To Bank</span>
+      </div>
+
+      <a href="/scanner" class="action-btn" title="Open Forensic Scanner">
+        <div class="action-icon" style="color: #a855f7;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+          </svg>
+        </div>
+        <span class="action-label">Forensics</span>
+      </a>
+    </section>
+
+    <!-- AI Security Notice -->
+    <section class="security-banner">
+      <div class="sec-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="sec-text">
+        <h4>Real-Time Quishing Protection</h4>
+        <p>Every QR code is evaluated by Random Forest ML before money leaves your account.</p>
+      </div>
+    </section>
+
+    <!-- Recent Payments -->
+    <div class="section-title">
+      <span>Recent Payments</span>
+      <span style="color: var(--cyan); cursor: pointer; font-size: 12px;">View all</span>
+    </div>
+
+    <section class="tx-list">
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-avatar">☕</div>
+          <div class="tx-info">
+            <h5>Blue Tokai Coffee</h5>
+            <p>Today, 11:20 AM · QR Pay</p>
+          </div>
+        </div>
+        <div class="tx-amount">
+          <div class="val">- ₹240.00</div>
+          <div class="status">✓ AI Verified Safe</div>
+        </div>
+      </div>
+
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-avatar">🛒</div>
+          <div class="tx-info">
+            <h5>Supermarket Grocery</h5>
+            <p>Yesterday, 6:45 PM · QR Pay</p>
+          </div>
+        </div>
+        <div class="tx-amount">
+          <div class="val">- ₹1,420.00</div>
+          <div class="status">✓ AI Verified Safe</div>
+        </div>
+      </div>
+
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-avatar" style="background: rgba(239, 68, 68, 0.15); color: var(--risk);">⚠️</div>
+          <div class="tx-info">
+            <h5>Suspicious Lucky Reward</h5>
+            <p>10 Nov, 2:10 PM · Blocked</p>
+          </div>
+        </div>
+        <div class="tx-amount">
+          <div class="val" style="color: var(--risk); text-decoration: line-through;">- ₹5,000.00</div>
+          <div class="status" style="color: var(--risk);">✕ Phishing Blocked</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <footer class="bottom-nav">
+    <div class="nav-item active">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Home</span>
+    </div>
+
+    <!-- Center Floating Scan Button -->
+    <div class="scan-fab" id="openScannerFab" title="Scan & Pay">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7z"/>
+      </svg>
+    </div>
+
+    <div class="nav-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>Passbook</span>
+    </div>
+  </footer>
+
+  <!-- ================= SCANNER MODAL OVERLAY ================= -->
+  <div class="scanner-overlay" id="scannerOverlay">
+    <header class="scanner-header">
+      <h3>
+        Scan & Pay
+        <span>AI SECURED</span>
+      </h3>
+      <button class="close-btn" id="closeScannerBtn">✕</button>
+    </header>
+
+    <div class="scanner-body">
+      <div class="viewfinder">
+        <video id="videoFeed" playsinline autoplay muted></video>
+        <div class="corner c-tl"></div>
+        <div class="corner c-tr"></div>
+        <div class="corner c-bl"></div>
+        <div class="corner c-br"></div>
+        <div class="laser-line"></div>
+      </div>
+
+      <div class="scanner-footer-controls">
+        <button class="ctrl-pill" id="swapCameraBtn">
+          🔄 Flip Camera
+        </button>
+      </div>
+
+      <label class="upload-qr-link">
+        Upload QR Image from Gallery
+        <input type="file" id="modalFileInput" accept="image/*" hidden>
+      </label>
+
+      <canvas id="canvasBuffer"></canvas>
+    </div>
+  </div>
+
+  <!-- ================= PAYMENT RESULT / VERDICT BOTTOM SHEET ================= -->
+  <div class="result-modal" id="resultModal">
+    <div class="drag-handle"></div>
+
+    <div class="verdict-header">
+      <div class="status-badge-icon" id="resStatusIcon">✓</div>
+      <div class="status-title">
+        <h3 id="resVerdict">SAFE QR CODE</h3>
+        <p id="resSub">Verified by Random Forest Model</p>
+      </div>
+    </div>
+
+    <div class="risk-meter">
+      <span>AI Phishing Risk</span>
+      <span class="score" id="resRiskScore">12%</span>
+    </div>
+
+    <div class="qr-url-box" id="resQrPayload">
+      upi://pay?pa=merchant@hdfc&pn=Merchant
+    </div>
+
+    <ul class="reasons-list" id="resReasons">
+      <!-- reasons injected here -->
+    </ul>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnDismissResult">Cancel</button>
+      <button class="btn-pay" id="btnProceedPayment">Proceed to Pay ₹250</button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">✓ Payment of ₹250 successful!</div>
+
+</div>
+
+<!-- QR decoding library -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+
+<script>
+  // DOM Elements
+  const openScannerBtn  = document.getElementById("openScannerBtn");
+  const openScannerFab  = document.getElementById("openScannerFab");
+  const closeScannerBtn = document.getElementById("closeScannerBtn");
+  const scannerOverlay  = document.getElementById("scannerOverlay");
+  const videoFeed       = document.getElementById("videoFeed");
+  const canvasBuffer    = document.getElementById("canvasBuffer");
+  const ctxBuffer       = canvasBuffer.getContext("2d");
+  const swapCameraBtn   = document.getElementById("swapCameraBtn");
+  const modalFileInput  = document.getElementById("modalFileInput");
+
+  // Result sheet elements
+  const resultModal     = document.getElementById("resultModal");
+  const resStatusIcon   = document.getElementById("resStatusIcon");
+  const resVerdict      = document.getElementById("resVerdict");
+  const resSub          = document.getElementById("resSub");
+  const resRiskScore    = document.getElementById("resRiskScore");
+  const resQrPayload    = document.getElementById("resQrPayload");
+  const resReasons      = document.getElementById("resReasons");
+  const btnProceedPayment = document.getElementById("btnProceedPayment");
+  const btnDismissResult  = document.getElementById("btnDismissResult");
+  const toast           = document.getElementById("toast");
+
+  let activeStream = null;
+  let animFrameId = null;
+  let currentFacing = "environment"; // "environment" or "user"
+  let isScanningActive = false;
+
+  // Open Scanner
+  function showScanner() {
+    scannerOverlay.classList.add("active");
+    startCamera(currentFacing);
+  }
+
+  // Close Scanner
+  function hideScanner() {
+    stopCamera();
+    scannerOverlay.classList.remove("active");
+  }
+
+  openScannerBtn.addEventListener("click", showScanner);
+  openScannerFab.addEventListener("click", showScanner);
+  closeScannerBtn.addEventListener("click", hideScanner);
+
+  // Camera Management
+  async function startCamera(facing = "environment") {
+    stopCamera();
+    currentFacing = facing;
+
+    try {
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: currentFacing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+      } catch (e) {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+
+      activeStream = stream;
+      videoFeed.srcObject = activeStream;
+      await videoFeed.play();
+      isScanningActive = true;
+      requestAnimationFrame(scanTick);
+    } catch (err) {
+      alert("Unable to open camera: " + err.message);
+      hideScanner();
+    }
+  }
+
+  function stopCamera() {
+    isScanningActive = false;
+    if (animFrameId) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = null;
+    }
+    if (activeStream) {
+      activeStream.getTracks().forEach(t => t.stop());
+      activeStream = null;
+    }
+    videoFeed.srcObject = null;
+  }
+
+  swapCameraBtn.addEventListener("click", () => {
+    currentFacing = currentFacing === "environment" ? "user" : "environment";
+    startCamera(currentFacing);
+  });
+
+  // Continuous Frame QR Decoder
+  function scanTick() {
+    if (!isScanningActive || !activeStream || videoFeed.readyState !== videoFeed.HAVE_ENOUGH_DATA) {
+      if (isScanningActive) animFrameId = requestAnimationFrame(scanTick);
+      return;
+    }
+
+    canvasBuffer.width = videoFeed.videoWidth;
+    canvasBuffer.height = videoFeed.videoHeight;
+    ctxBuffer.drawImage(videoFeed, 0, 0, canvasBuffer.width, canvasBuffer.height);
+
+    const imgData = ctxBuffer.getImageData(0, 0, canvasBuffer.width, canvasBuffer.height);
+    const code = jsQR(imgData.data, imgData.width, imgData.height, {
+      inversionAttempts: "dontInvert"
+    });
+
+    if (code && code.data) {
+      // QR captured!
+      stopCamera();
+      hideScanner();
+      evaluateQR(code.data);
+      return;
+    }
+
+    animFrameId = requestAnimationFrame(scanTick);
+  }
+
+  // Gallery Upload
+  modalFileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      canvasBuffer.width = img.width;
+      canvasBuffer.height = img.height;
+      ctxBuffer.drawImage(img, 0, 0);
+      const imgData = ctxBuffer.getImageData(0, 0, canvasBuffer.width, canvasBuffer.height);
+      const code = jsQR(imgData.data, imgData.width, imgData.height);
+      URL.revokeObjectURL(url);
+
+      if (code && code.data) {
+        stopCamera();
+        hideScanner();
+        evaluateQR(code.data);
+      } else {
+        alert("No QR code detected in the selected image.");
+      }
+    };
+    img.src = url;
+  });
+
+  // Call Backend Machine Learning API
+  async function evaluateQR(payload) {
+    resQrPayload.textContent = payload;
+    resReasons.innerHTML = "<li>Analyzing features with Random Forest...</li>";
+    resultModal.classList.add("open");
+
+    try {
+      const res = await fetch("/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: payload })
+      });
+
+      const data = await res.json();
+      displayResult(data, payload);
+    } catch (err) {
+      console.error(err);
+      resReasons.innerHTML = "<li style='color:var(--risk)'>Failed to connect to backend model.</li>";
+    }
+  }
+
+  // Display Verdict & Enable/Block Payment
+  function displayResult(data, rawUrl) {
+    const isSafe = data.prediction && data.prediction.toLowerCase() === "safe";
+    const score = data.risk_score || 0;
+
+    resRiskScore.textContent = score + "%";
+
+    if (isSafe) {
+      resStatusIcon.className = "status-badge-icon safe";
+      resStatusIcon.textContent = "✓";
+      resVerdict.textContent = "SAFE TO PAY";
+      resVerdict.style.color = "var(--safe)";
+      resSub.textContent = "Verified Authentic QR Code";
+      resRiskScore.style.color = "var(--safe)";
+
+      btnProceedPayment.className = "btn-pay";
+      btnProceedPayment.disabled = false;
+      btnProceedPayment.textContent = "Proceed to Pay Securely";
+    } else {
+      resStatusIcon.className = "status-badge-icon suspicious";
+      resStatusIcon.textContent = "⚠️";
+      resVerdict.textContent = "DANGER: PHISHING DETECTED";
+      resVerdict.style.color = "var(--risk)";
+      resSub.textContent = "Payment blocked to prevent fraudulent transfer";
+      resRiskScore.style.color = "var(--risk)";
+
+      btnProceedPayment.className = "btn-pay blocked";
+      btnProceedPayment.disabled = true;
+      btnProceedPayment.textContent = "⛔ Payment Blocked by AI";
+    }
+
+    // Reasons list
+    resReasons.innerHTML = "";
+    if (data.reasons && data.reasons.length > 0) {
+      data.reasons.forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = r;
+        if (!isSafe) li.style.color = "var(--risk)";
+        resReasons.appendChild(li);
+      });
+    } else {
+      const li = document.createElement("li");
+      li.textContent = isSafe ? "No malicious or deceptive patterns found." : "Multiple risk indicators triggered.";
+      resReasons.appendChild(li);
+    }
+  }
+
+  // Dismiss Bottom Sheet
+  btnDismissResult.addEventListener("click", () => {
+    resultModal.classList.remove("open");
+  });
+
+  // Proceed Payment Trigger
+  btnProceedPayment.addEventListener("click", () => {
+    resultModal.classList.remove("open");
+    toast.classList.add("show");
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3500);
+  });
+</script>
+
+</body>
+</html>

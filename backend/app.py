@@ -13,6 +13,11 @@ model = joblib.load("phishing_model.pkl")
 
 @app.route('/')
 def home():
+    return render_template('pay.html')
+
+
+@app.route('/scanner')
+def scanner():
     return render_template('index.html')
 
 
