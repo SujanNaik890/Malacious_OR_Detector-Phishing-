@@ -209,6 +209,14 @@
 
   .scan-empty p{ margin:0 0 12px; }
 
+  .upload-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
+  }
+
   .file-btn{
     display:inline-block;
     font-family:var(--font-mono);
@@ -225,22 +233,15 @@
 
   .file-btn:hover{ border-color:var(--scan); color:var(--scan); }
 
-  .camera-actions{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    justify-content:center;
-    margin-top:12px;
-  }
-
   .btn-cam{
     font-family:var(--font-mono);
-    font-size:12px;
+    font-size:13px;
+    letter-spacing:0.02em;
     color:var(--text);
-    background:var(--panel-2);
+    background:var(--panel);
     border:1px solid var(--line);
     border-radius:6px;
-    padding:7px 12px;
+    padding:9px 16px;
     cursor:pointer;
     display:inline-flex;
     align-items:center;
@@ -536,16 +537,13 @@
 
         <div class="scan-empty" id="scanEmpty">
           <p>Drop a QR image here, or</p>
-          <label class="file-btn">
-            Choose image
-            <input type="file" id="fileInput" accept="image/*" hidden>
-          </label>
-          <div class="camera-actions">
-            <button class="btn-cam" id="btnFrontCam" type="button">
-              📷 Front Camera
-            </button>
-            <button class="btn-cam" id="btnRearCam" type="button">
-              📸 Rear Camera
+          <div class="upload-actions">
+            <label class="file-btn">
+              Choose image
+              <input type="file" id="fileInput" accept="image/*" hidden>
+            </label>
+            <button class="btn-cam" id="btnScanCam" type="button">
+              📷 Scan with Camera
             </button>
           </div>
         </div>
@@ -553,8 +551,7 @@
         <div class="video-container" id="videoContainer" hidden>
           <video id="cameraVideo" playsinline autoplay muted></video>
           <div class="cam-controls">
-            <button class="btn-cam" id="btnSwitchCam" type="button">🔄 Switch Camera</button>
-            <button class="btn-cam-stop" id="btnStopCam" type="button">✕ Stop Camera</button>
+            <button class="btn-cam-stop" id="btnStopCam" type="button">✕ Cancel Scan</button>
           </div>
         </div>
 
@@ -617,15 +614,12 @@
   const ctx         = canvas.getContext("2d");
   const fileInput   = document.getElementById("fileInput");
 
-  const btnFrontCam    = document.getElementById("btnFrontCam");
-  const btnRearCam     = document.getElementById("btnRearCam");
+  const btnScanCam     = document.getElementById("btnScanCam");
   const videoContainer = document.getElementById("videoContainer");
   const cameraVideo    = document.getElementById("cameraVideo");
-  const btnSwitchCam   = document.getElementById("btnSwitchCam");
   const btnStopCam     = document.getElementById("btnStopCam");
 
   let activeStream = null;
-  let currentFacingMode = "environment";
   let scanAnimationId = null;
 
   const urlInput      = document.getElementById("urlInput");
@@ -848,41 +842,39 @@
 
   // ---------- Live Camera Scanner ----------
 
-  async function startCamera(facingMode = "environment"){
+  async function startCamera(){
     stopCamera();
-    currentFacingMode = facingMode;
 
     try{
-      const constraints = {
-        video: {
-          facingMode: { ideal: facingMode },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      };
+      // Prefer rear camera on mobile devices ("environment"), falls back to available camera on PC/laptop
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+      } catch (err) {
+        // Fallback for laptops or devices that don't support environment facingMode
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+      }
 
-      activeStream = await navigator.mediaDevices.getUserMedia(constraints);
+      activeStream = stream;
       cameraVideo.srcObject = activeStream;
       await cameraVideo.play();
 
       scanEmpty.hidden = true;
       videoContainer.hidden = false;
       scanFrame.className = "scan-frame state-scanning";
-
-      if(facingMode === "user"){
-        btnFrontCam.classList.add("active");
-        btnRearCam.classList.remove("active");
-      } else {
-        btnRearCam.classList.add("active");
-        btnFrontCam.classList.remove("active");
-      }
+      btnScanCam.classList.add("active");
 
       requestAnimationFrame(scanVideoTick);
     } catch(err){
       console.error("Camera access error:", err);
       stopCamera();
-      setError("Unable to access camera: " + (err.message || "Permission denied or device not found."));
+      setError("Unable to access camera: " + (err.message || "Permission denied or no camera device found."));
     }
   }
 
@@ -898,8 +890,7 @@
     cameraVideo.srcObject = null;
     videoContainer.hidden = true;
     scanEmpty.hidden = false;
-    btnFrontCam.classList.remove("active");
-    btnRearCam.classList.remove("active");
+    btnScanCam.classList.remove("active");
   }
 
   function scanVideoTick(){
@@ -927,15 +918,10 @@
     scanAnimationId = requestAnimationFrame(scanVideoTick);
   }
 
-  btnFrontCam.addEventListener("click", () => startCamera("user"));
-  btnRearCam.addEventListener("click", () => startCamera("environment"));
+  btnScanCam.addEventListener("click", () => startCamera());
   btnStopCam.addEventListener("click", () => {
     stopCamera();
     scanFrame.className = "scan-frame";
-  });
-  btnSwitchCam.addEventListener("click", () => {
-    const nextMode = currentFacingMode === "user" ? "environment" : "user";
-    startCamera(nextMode);
   });
 
   // ---------- Direct URL analyze ----------
