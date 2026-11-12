@@ -50,7 +50,7 @@ model = RandomForestClassifier(
     n_jobs=-1              # sare CPU cores use karo, fast training
 )
 model.fit(X_train, y_train)
-print("✅ Model training complete!")
+print("[OK] Model training complete!")
 
 # ---------- Step 5: Test data pe prediction ----------
 print("\nStep 4: Test data pe evaluate kar rahe hain...")
@@ -86,5 +86,5 @@ print(importances)
 
 # ---------- Step 8: Model Save Karna ----------
 joblib.dump(model, "phishing_model.pkl")
-print("\n✅ Model saved as 'phishing_model.pkl'")
+print("\n[OK] Model saved as 'phishing_model.pkl'")
 print("Ab ye file Flask backend (app.py) me use hogi.")
