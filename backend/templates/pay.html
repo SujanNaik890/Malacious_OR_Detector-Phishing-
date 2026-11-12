@@ -749,7 +749,7 @@
     <!-- Balance Card -->
     <section class="balance-card">
       <p class="label">Primary Wallet Balance</p>
-      <div class="amount"><span>₹</span>14,850.50</div>
+      <div class="amount"><span>₹</span><span id="walletBalanceDisplay">14,850.50</span></div>
       <div class="card-footer">
         <span>Linked: HDFC Bank •••• 4092</span>
         <span style="color: var(--safe); font-weight: 600;">UPI ID Verified</span>
@@ -816,7 +816,7 @@
       <span style="color: var(--cyan); cursor: pointer; font-size: 12px;">View all</span>
     </div>
 
-    <section class="tx-list">
+    <section class="tx-list" id="transactionList">
       <div class="tx-item">
         <div class="tx-left">
           <div class="tx-avatar">☕</div>
@@ -938,13 +938,34 @@
       upi://pay?pa=merchant@hdfc&pn=Merchant
     </div>
 
+    <!-- Interactive User Payment Input Section (Active only when SAFE) -->
+    <div id="paymentInputSection" style="display:none; margin-bottom:16px;">
+      <div style="background:var(--card-surface); border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Payee / Merchant</span>
+          <span id="payeeNameBadge" style="font-size:13px; font-weight:700; color:var(--cyan);">Merchant</span>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:11px; color:var(--text-muted); font-weight:600; display:block; margin-bottom:4px;">ENTER AMOUNT (₹)</label>
+          <div style="display:flex; align-items:center; background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:10px; padding:0 12px;">
+            <span style="font-size:20px; font-weight:700; color:var(--cyan); margin-right:6px;">₹</span>
+            <input type="number" id="payAmountInput" value="250" min="1" max="50000" style="background:transparent; border:none; color:#fff; font-family:'Plus Jakarta Sans',sans-serif; font-size:20px; font-weight:800; width:100%; padding:10px 0; outline:none;" placeholder="Enter amount">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px; color:var(--text-muted); font-weight:600; display:block; margin-bottom:4px;">UPI PIN / PASSCODE</label>
+          <input type="password" id="upiPinInput" maxlength="6" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:10px; color:#fff; font-family:'IBM Plex Mono',monospace; font-size:18px; letter-spacing:6px; width:100%; padding:10px 12px; outline:none; text-align:center;" placeholder="••••">
+        </div>
+      </div>
+    </div>
+
     <ul class="reasons-list" id="resReasons">
       <!-- reasons injected here -->
     </ul>
 
     <div class="modal-actions">
       <button class="btn-cancel" id="btnDismissResult">Cancel</button>
-      <button class="btn-pay" id="btnProceedPayment">Proceed to Pay ₹250</button>
+      <button class="btn-pay" id="btnProceedPayment">Pay ₹250 Securely</button>
     </div>
   </div>
 
@@ -979,6 +1000,25 @@
   const btnProceedPayment = document.getElementById("btnProceedPayment");
   const btnDismissResult  = document.getElementById("btnDismissResult");
   const toast           = document.getElementById("toast");
+
+  // User Interactive Payment inputs
+  const paymentInputSection   = document.getElementById("paymentInputSection");
+  const payeeNameBadge        = document.getElementById("payeeNameBadge");
+  const payAmountInput        = document.getElementById("payAmountInput");
+  const upiPinInput           = document.getElementById("upiPinInput");
+  const walletBalanceDisplay  = document.getElementById("walletBalanceDisplay");
+  const transactionList       = document.getElementById("transactionList");
+
+  let userWalletBalance = 14850.50;
+  let activePayee = "Merchant";
+  let activeQrUrl = "";
+
+  payAmountInput.addEventListener("input", () => {
+    const amt = parseFloat(payAmountInput.value) || 0;
+    if (!btnProceedPayment.classList.contains("blocked")) {
+      btnProceedPayment.textContent = `Pay ₹${amt.toLocaleString()} Securely`;
+    }
+  });
 
   let activeStream = null;
   let animFrameId = null;
@@ -1124,28 +1164,47 @@
   function displayResult(data, rawUrl) {
     const isSafe = data.prediction && data.prediction.toLowerCase() === "safe";
     const score = data.risk_score || 0;
+    activeQrUrl = rawUrl;
 
     resRiskScore.textContent = score + "%";
+
+    // Extract payee name if UPI URL
+    try {
+      if (rawUrl.startsWith("upi://") || rawUrl.includes("pa=")) {
+        const urlParams = new URLSearchParams(rawUrl.split("?")[1] || "");
+        activePayee = urlParams.get("pn") || urlParams.get("pa") || "Merchant";
+      } else {
+        const parsed = new URL(rawUrl.includes("://") ? rawUrl : "http://" + rawUrl);
+        activePayee = parsed.hostname;
+      }
+    } catch(e) {
+      activePayee = "Merchant";
+    }
+    payeeNameBadge.textContent = decodeURIComponent(activePayee);
 
     if (isSafe) {
       resStatusIcon.className = "status-badge-icon safe";
       resStatusIcon.textContent = "✓";
       resVerdict.textContent = "SAFE TO PAY";
       resVerdict.style.color = "var(--safe)";
-      resSub.textContent = "Verified Authentic QR Code";
+      resSub.textContent = "Authentic Merchant Verified by AI";
       resRiskScore.style.color = "var(--safe)";
 
+      paymentInputSection.style.display = "block";
+      const amt = parseFloat(payAmountInput.value) || 250;
       btnProceedPayment.className = "btn-pay";
       btnProceedPayment.disabled = false;
-      btnProceedPayment.textContent = "Proceed to Pay Securely";
+      btnProceedPayment.textContent = `Pay ₹${amt.toLocaleString()} Securely`;
+      upiPinInput.value = "";
     } else {
       resStatusIcon.className = "status-badge-icon suspicious";
       resStatusIcon.textContent = "⚠️";
       resVerdict.textContent = "DANGER: PHISHING DETECTED";
       resVerdict.style.color = "var(--risk)";
-      resSub.textContent = "Payment blocked to prevent fraudulent transfer";
+      resSub.textContent = "Payment blocked to protect your bank account";
       resRiskScore.style.color = "var(--risk)";
 
+      paymentInputSection.style.display = "none";
       btnProceedPayment.className = "btn-pay blocked";
       btnProceedPayment.disabled = true;
       btnProceedPayment.textContent = "⛔ Payment Blocked by AI";
@@ -1162,7 +1221,7 @@
       });
     } else {
       const li = document.createElement("li");
-      li.textContent = isSafe ? "No malicious or deceptive patterns found." : "Multiple risk indicators triggered.";
+      li.textContent = isSafe ? "No deceptive patterns found. Safe to transfer." : "Multiple phishing signals triggered.";
       resReasons.appendChild(li);
     }
   }
@@ -1172,13 +1231,58 @@
     resultModal.classList.remove("open");
   });
 
-  // Proceed Payment Trigger
+  // Proceed Payment Trigger - Completed by User
   btnProceedPayment.addEventListener("click", () => {
+    if (btnProceedPayment.disabled || btnProceedPayment.classList.contains("blocked")) {
+      return;
+    }
+
+    const payAmount = parseFloat(payAmountInput.value);
+    if (!payAmount || payAmount <= 0) {
+      alert("Please enter a valid payment amount.");
+      return;
+    }
+
+    if (payAmount > userWalletBalance) {
+      alert("Insufficient wallet balance for this payment!");
+      return;
+    }
+
+    const pin = upiPinInput.value;
+    if (!pin || pin.length < 4) {
+      alert("Please enter your 4-digit or 6-digit UPI PIN to authorize payment.");
+      upiPinInput.focus();
+      return;
+    }
+
+    // Deduct user balance
+    userWalletBalance -= payAmount;
+    walletBalanceDisplay.textContent = userWalletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Add transaction to recent list
+    const newTx = document.createElement("div");
+    newTx.className = "tx-item";
+    newTx.innerHTML = `
+      <div class="tx-left">
+        <div class="tx-avatar">🛍️</div>
+        <div class="tx-info">
+          <h5>${decodeURIComponent(activePayee)}</h5>
+          <p>Just now · QR UPI Pay</p>
+        </div>
+      </div>
+      <div class="tx-amount">
+        <div class="val">- ₹${payAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+        <div class="status">✓ AI Verified Safe</div>
+      </div>
+    `;
+    transactionList.prepend(newTx);
+
     resultModal.classList.remove("open");
+    toast.textContent = `✓ Paid ₹${payAmount.toLocaleString()} to ${decodeURIComponent(activePayee)} successfully!`;
     toast.classList.add("show");
     setTimeout(() => {
       toast.classList.remove("show");
-    }, 3500);
+    }, 4000);
   });
 </script>
 
