@@ -211,7 +211,7 @@
 
   .upload-actions{
     display:flex;
-    gap:10px;
+    gap:8px;
     flex-wrap:wrap;
     justify-content:center;
     align-items:center;
@@ -233,6 +233,11 @@
 
   .file-btn:hover{ border-color:var(--scan); color:var(--scan); }
 
+  .cam-btn-group{
+    display:inline-flex;
+    align-items:stretch;
+  }
+
   .btn-cam{
     font-family:var(--font-mono);
     font-size:13px;
@@ -240,8 +245,8 @@
     color:var(--text);
     background:var(--panel);
     border:1px solid var(--line);
-    border-radius:6px;
-    padding:9px 16px;
+    border-radius:6px 0 0 6px;
+    padding:9px 14px;
     cursor:pointer;
     display:inline-flex;
     align-items:center;
@@ -258,6 +263,36 @@
     background:rgba(76,201,240,0.15);
     border-color:var(--scan);
     color:var(--scan);
+  }
+
+  .btn-cam-swap-toggle{
+    background:var(--panel);
+    color:var(--muted);
+    border:1px solid var(--line);
+    border-left:none;
+    border-radius:0 6px 6px 0;
+    padding:9px 11px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    transition:all 150ms ease;
+  }
+
+  .btn-cam-swap-toggle:hover{
+    border-color:var(--scan);
+    color:var(--scan);
+    background:rgba(76,201,240,0.08);
+  }
+
+  .btn-cam-swap-toggle.rear{
+    color:var(--safe);
+  }
+
+  .btn-cam-swap-toggle.front{
+    color:var(--amber);
   }
 
   .video-container{
@@ -598,9 +633,14 @@
               Choose image
               <input type="file" id="fileInput" accept="image/*" hidden>
             </label>
-            <button class="btn-cam" id="btnScanCam" type="button">
-              📷 Scan with Camera
-            </button>
+            <div class="cam-btn-group">
+              <button class="btn-cam" id="btnScanCam" type="button">
+                📷 Scan with Camera
+              </button>
+              <button class="btn-cam-swap-toggle rear" id="btnSwapPre" type="button" title="Switch default camera (Rear / Front)">
+                🔄 <span id="swapPreLabel">Rear</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -679,6 +719,8 @@
   const fileInput   = document.getElementById("fileInput");
 
   const btnScanCam     = document.getElementById("btnScanCam");
+  const btnSwapPre     = document.getElementById("btnSwapPre");
+  const swapPreLabel   = document.getElementById("swapPreLabel");
   const videoContainer = document.getElementById("videoContainer");
   const cameraVideo    = document.getElementById("cameraVideo");
   const btnStopCam     = document.getElementById("btnStopCam");
@@ -687,6 +729,21 @@
   let activeStream = null;
   let scanAnimationId = null;
   let currentFacingMode = "environment"; // "environment" (rear) or "user" (front)
+
+  function updateSwapPreUI(){
+    if(!btnSwapPre || !swapPreLabel) return;
+    const isRear = currentFacingMode === "environment";
+    swapPreLabel.textContent = isRear ? "Rear" : "Front";
+    btnSwapPre.className = "btn-cam-swap-toggle " + (isRear ? "rear" : "front");
+    btnSwapPre.title = "Current: " + (isRear ? "Rear Camera" : "Front/Selfie Camera") + " — Click to toggle";
+  }
+
+  if(btnSwapPre){
+    btnSwapPre.addEventListener("click", () => {
+      currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+      updateSwapPreUI();
+    });
+  }
 
   const urlInput      = document.getElementById("urlInput");
   const analyzeUrlBtn = document.getElementById("analyzeUrlBtn");
@@ -964,7 +1021,9 @@
   async function swapCamera(){
     // Toggle between "environment" (rear) and "user" (front)
     const newFacing = currentFacingMode === "environment" ? "user" : "environment";
+    updateSwapPreUI();
     await startCamera(newFacing);
+    updateSwapPreUI();
   }
 
   function scanVideoTick(){
